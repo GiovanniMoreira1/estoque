@@ -1,4 +1,6 @@
 import pandas as pd
+from fpdf import FPDF
+import webbrowser
 import os
 from datetime import datetime
 
@@ -12,7 +14,7 @@ def ver_estoque():
         df = pd.read_csv("estoque.csv")
         print("\nESTOQUE:\n")
         for index, row in df.iterrows():
-            print(f"{row['produto']}:\nQuantidade: {row['qntd_atual']} | Matéria-prima: {row['materia-prima']} | Massa (g): {row['massa']} | Ciclo (s): {row['ciclo']} | \nNº de cavidades: {row['n_cavidades']} | Venda mensal: {row['venda_mensal']} | Produção mensal: {row['producao_mensal']} | Data: {row['data']} |\n")
+            print(f"{row['produto']}:\nQuantidade: {row['qntd_atual']} | Matéria-prima: {row['materia_prima']} | Massa (g): {row['massa']} | Ciclo (s): {row['ciclo']} | \nNº de cavidades: {row['n_cavidades']} | Venda mensal: {row['venda_mensal']} | Produção mensal: {row['producao_mensal']} | Data: {row['data']} |\n")
     except:
         print("Arquivo não existe, tente novamente.")
         
@@ -36,7 +38,7 @@ def adicionar_produto():
         novo_item = {
         "produto": produto,
         "qntd_atual": quantidade_atual,
-        "materia-prima": materia_prima,
+        "materia_prima": materia_prima,
         "massa": massa,
         "ciclo": ciclo,
         "n_cavidades": n_cavidades,
@@ -60,7 +62,36 @@ def adicionar_produto():
     
 
 def remover_produto():
-    return 0
+    df = pd.read_csv("estoque.csv")
+    while True:
+        print("\nProdutos em estoque:")
+        print(*df["produto"].values, sep="\n")
+        print("\n")
+        
+        prod_remover = input("Digite o nome do produto que deseja remover do estoque (ou digite 'sair' para cancelar a operação): ").strip().lower()
+        
+        if prod_remover == "sair":
+            print("Operação cancelada.")
+            return
+        
+        if prod_remover in df["produto"].str.lower().values:
+            opc = input(f"Deseja realmente excluir o produto {prod_remover} (S/N)? ".strip().lower())
+            if(opc == "s"):
+                df = df[df["produto"].str.lower() != prod_remover]  
+                df.to_csv("estoque.csv", index=False)
+                print("\n✅ Produto removido com sucesso!\n")
+                opc = input("Deseja ver o estoque atualizado (S/N)? \n")
+                if(opc.capitalize() == "S"):
+                    ver_estoque()
+                    return
+                else:
+                    return
+            else:
+                print("Operação cancelada.")
+                return
+        else:
+            print("❌ Produto não encontrado, tente novamente.")
+            
 
 def atualizar_produto():
     df = pd.read_csv("estoque.csv")
@@ -112,7 +143,33 @@ def simulacao_mensal():
     else:
         return
 
+def exportar_pdf():
+    df = pd.read_csv("estoque.csv")
+    
+    pdf = FPDF(orientation="L", unit="mm", format="A4")
+    pdf.add_page()
+    pdf.set_font("Arial", style="B", size=11)
+    
+    pdf.cell(200, 10, "Dados do estoque", ln=True)
+    pdf.set_font("Arial", size=9)
+    
+    for coluna in df.columns:
+        pdf.set_text_color(0, 0, 255)
+        pdf.cell(30, 10, coluna, border=1)
+    
+    pdf.ln()
+    
+    for _, linha in df.iterrows():
+        for item in linha:
+            pdf.set_text_color(0, 0, 0)
+            pdf.cell(30, 10, str(item), border=1)
+        pdf.ln()
 
+    arquivo = "estoque.pdf"
+
+    pdf.output(arquivo)
+    webbrowser.open("file://" + os.path.abspath(arquivo))
+    
 def main():    
     
     while(True):
@@ -128,7 +185,8 @@ O que deseja fazer?
 4. Ver estoque
 5. Exportar como excel
 6. Simulação mensal
-7. Sair
+7. Exportar como PDF
+8. Sair
 ----------------------------------
 Opção: """))
         
@@ -151,7 +209,10 @@ Opção: """))
             print("Opção escolhida: 6. Simulação mensal")
             simulacao_mensal()
         elif(escolha == "7"):
-            print("Opção escolhida: 7. Sair")
+            print("Opção escolhida: 7. Exportar como PDF")
+            exportar_pdf()
+        elif(escolha == "8"):
+            print("Opção escolhida: 8. Sair")
             break
         else:
             print("Valor inválido, tente novamente.")
