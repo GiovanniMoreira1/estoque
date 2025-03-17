@@ -63,6 +63,7 @@ def adicionar_produto():
 
 def remover_produto():
     df = pd.read_csv("estoque.csv")
+    
     while True:
         print("\nProdutos em estoque:")
         print(*df["produto"].values, sep="\n")
@@ -101,27 +102,33 @@ def atualizar_produto():
     print("\nProdutos em estoque:\n")
     print(*df["produto"].values, sep="\n")
     
-    try:
-        nome = input("\nDigite o nome do produto que deseja atualizar: ")
-        resultado = df[df["produto"] == nome]
-        resultado_str = resultado.to_string(index=False, header=True)
-        print(f"\n{resultado_str}\n")
-        coluna = input("Digite o nome da coluna que deseja mudar: ")
+    while True:
+        nome = input("\nDigite o nome do produto que deseja atualizar (ou 'sair' para cancelar a operação): ").strip().lower()
+        if nome == 'sair':
+            print("\n❌ Operação cancelada.")
+            return
         
-        if coluna in df.columns:
-            novo_valor = input(f"Digite o valor desejado para a coluna {coluna}: ")
-            df.loc[df["produto"] == nome, coluna] = novo_valor
-            df.to_csv('estoque.csv', index=False)
-            print("\nValor alterado com sucesso.\n")
-            print(linha)
-            print(df)
-            print(linha)
-            confirmacao()
+        if nome in df["produto"].str.lower().values:
+            resultado = df[df["produto"].str.lower() == nome]
+            resultado_str = resultado.to_string(index=False, header=True)
+            print(f"\n{resultado_str}\n")
+            coluna = input("Digite o nome da coluna que deseja mudar: ").strip().lower()
             
-    except Exception as e:
-        print("ERRO: ", e)
-    
-    return 0
+            if coluna in df.columns:
+                novo_valor = int(input(f"Digite o valor desejado para a coluna {coluna}: "))
+                df.loc[df["produto"].str.lower() == nome, coluna] = novo_valor
+                df.to_csv('estoque.csv', index=False)
+                print("\nValor alterado com sucesso.\n")
+                print(linha)
+                print(df)
+                print(linha)
+                confirmacao()
+                break
+            else:
+                print("❌ Coluna não reconhecida, tente novamente!")
+        else:
+            print("❌ Nome de produto não reconhecido, tente novamente.")
+            
 
 def exportar_excel():
     df = pd.read_csv('estoque.csv')
@@ -215,7 +222,7 @@ Opção: """))
             print("Opção escolhida: 8. Sair")
             break
         else:
-            print("Valor inválido, tente novamente.")
+            print("❌ Valor inválido, tente novamente.")
             
             
 
