@@ -24,13 +24,20 @@ def ver_estoque():
         
     return 0
 
+import tkinter as tk
+from tkinter import messagebox
+import pandas as pd
+import os
+from datetime import datetime
+
 def adicionar_produto():
     try:
         janela_input = tk.Toplevel()
         janela_input.title("Adicionar Produto")
         janela_input.geometry("400x500")
         janela_input.configure(bg='#000000')
-        
+
+        # Centralizar a janela na tela
         janela_input.update_idletasks()
         width = janela_input.winfo_width()
         height = janela_input.winfo_height()
@@ -38,10 +45,9 @@ def adicionar_produto():
         y = (janela_input.winfo_screenheight() // 2) - (height // 2)
         janela_input.geometry(f'{width}x{height}+{x}+{y}')
         
-    
         campos = {}
         entries = {}
-        
+
         campos_info = [
             ("produto", "Nome do produto:", str),
             ("quantidade_atual", "Quantidade atual:", int),
@@ -52,18 +58,19 @@ def adicionar_produto():
             ("venda_mensal", "Venda mensal:", int),
             ("producao_mensal", "Produção mensal:", int)
         ]
-        
-        for key, label_text, _ in campos_info:
-            frame = tk.Frame(janela_input, bg='#f0f0f0')
-            frame.pack(pady=5)
-            
-            label = tk.Label(frame, text=label_text, bg='#f0f0f0', font=('Arial', 10))
-            label.pack(side=tk.LEFT, padx=5)
-            
-            entry = tk.Entry(frame, font=('Arial', 10))
-            entry.pack(side=tk.LEFT, padx=5)
+
+        frame_inputs = tk.Frame(janela_input, bg='#000000')
+        frame_inputs.pack(pady=10, padx=10)
+
+        for i, (key, label_text, _) in enumerate(campos_info):
+            label = tk.Label(frame_inputs, text=label_text, bg='#000000', fg='#FFFFFF', font=('Arial', 10))
+            label.grid(row=i, column=0, sticky='e', padx=5, pady=5)
+
+            entry = tk.Entry(frame_inputs, font=('Arial', 10), width=20)
+            entry.grid(row=i, column=1, padx=5, pady=5)
+
             entries[key] = entry
-        
+
         def salvar():
             try:
                 for key, _, tipo in campos_info:
@@ -72,8 +79,7 @@ def adicionar_produto():
                         campos[key] = int(valor)
                     else:
                         campos[key] = valor
-                
-                # Criar novo item
+
                 novo_item = {
                     "produto": campos["produto"],
                     "qntd_atual": campos["quantidade_atual"],
@@ -85,39 +91,39 @@ def adicionar_produto():
                     "producao_mensal": campos["producao_mensal"],
                     "data": datetime.now().strftime("%d/%m/%Y")
                 }
-                
+
                 arquivo_csv = "estoque.csv"
                 df_novo = pd.DataFrame([novo_item])
-                
+
                 if not os.path.exists(arquivo_csv):
                     df_novo.to_csv(arquivo_csv, index=False)
                 else:
                     df_novo.to_csv(arquivo_csv, mode='a', header=False, index=False)
-                
+
                 messagebox.showinfo("Sucesso", "Produto adicionado com sucesso!")
                 janela_input.destroy()
-                
+
             except ValueError:
                 messagebox.showerror("Erro", "Por favor, insira valores numéricos válidos para os campos numéricos.")
             except Exception as e:
                 messagebox.showerror("Erro", f"Ocorreu um erro ao adicionar o produto: {str(e)}")
-        
-        # Botões de ação
-        frame_botoes = tk.Frame(janela_input, bg='#f0f0f0')
+
+        frame_botoes = tk.Frame(janela_input, bg='#000000')
         frame_botoes.pack(pady=20)
-        
+
         btn_salvar = tk.Button(frame_botoes, text="Salvar", command=salvar,
-                              width=10, font=('Arial', 10),
-                              bg='#4CAF50', fg='white')
+                               width=10, font=('Arial', 10),
+                               bg='#4CAF50', fg='white')
         btn_salvar.pack(side=tk.LEFT, padx=5)
-        
+
         btn_cancelar = tk.Button(frame_botoes, text="Cancelar", command=janela_input.destroy,
-                                width=10, font=('Arial', 10),
-                                bg='#f44336', fg='white')
+                                 width=10, font=('Arial', 10),
+                                 bg='#f44336', fg='white')
         btn_cancelar.pack(side=tk.LEFT, padx=5)
-        
+
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao criar janela de input: {str(e)}")
+
 
 def remover_produto():
     df = pd.read_csv("estoque.csv")
@@ -277,6 +283,7 @@ def main():
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao iniciar a aplicação: {str(e)}")
         print(f"Erro detalhado: {str(e)}")
+
 
 if __name__ == "__main__":
     main()
